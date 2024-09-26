@@ -2,7 +2,7 @@ import flet as ft
 from flet import*
 
 def main(page : Page):
-    page.title = 'Test App'
+    page.title = 'Music Player 1.0.1'
     page.bgcolor = 'black'
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
