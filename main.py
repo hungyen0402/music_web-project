@@ -44,7 +44,7 @@ def main(page : Page):
                 result_search.visible = False
             page.update()
 
-
+        # Thanh Search
         bar_search = SearchBar(
             view_elevation=5,
             bar_bgcolor='lightblue100',
@@ -58,6 +58,8 @@ def main(page : Page):
             bar_search,
             result_search,
         ])
+    
+    
     # Nền
     top = Container(
         alignment=ft.alignment.center,
