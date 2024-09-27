@@ -6,6 +6,7 @@ def main(page : Page):
     page.bgcolor = 'black'
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
+    # Thanh Search
     def _c():
         c = Container(
                     width=300,
@@ -29,6 +30,7 @@ def main(page : Page):
                     border_radius=35,
                 )
         return c
+    # Nền
     top = Container(
         alignment=ft.alignment.center,
         width=300,
