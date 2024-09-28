@@ -15,7 +15,7 @@ def main(page : Page):
     page.vertical_alignment = 'center'
    
 
-            
+    # Search Bar  
     def _bar_search():
 
         # Return result search
@@ -26,6 +26,7 @@ def main(page : Page):
                 Column()]
             )
         )
+        # Search Music Name
         def change_music(e):
             if e.data:
                 result_search.content.controls[1].controls.clear()
@@ -44,7 +45,7 @@ def main(page : Page):
                 result_search.visible = False
             page.update()
 
-        # Thanh Search
+        # Search Bar
         bar_search = SearchBar(
             view_elevation=5,
             bar_bgcolor='lightblue100',
@@ -53,19 +54,21 @@ def main(page : Page):
             view_hint_text='Search anything',
             bar_leading=ft.IconButton(icon='search'),
             on_change=change_music,
+            full_screen= True
         )
         return Column([
             bar_search,
             result_search,
         ])
     
-    
-    # Nền
+
+    # Background
     top = Container(
         alignment=ft.alignment.center,
         width=300,
         height=600,
         bgcolor='pink',
+    
         content=Stack(
             width=280,
             height=580,
@@ -73,6 +76,7 @@ def main(page : Page):
             alignment=ft.alignment.top_center,
             
         ),
+
         border_radius=35,
     )
     page.add(top)
