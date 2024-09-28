@@ -13,7 +13,7 @@ def main(page : Page):
     page.bgcolor = 'black'
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
-   
+    page.window.width = 350
 
     # Search Bar  
     def _bar_search():
@@ -62,8 +62,22 @@ def main(page : Page):
             bar_search,
             result_search,
         ])
-    
-
+    # Menu Tabs
+    def _TapMenu():
+       
+        mytab = Row(
+            alignment='spaceBetween',
+            controls=[
+                IconButton(icon='Menu', 
+                           icon_color='white',
+                           on_click=lambda e : print('Menu')
+                           ),
+                IconButton(icon='Home', icon_color='white'),
+                IconButton(icon='Favorite', icon_color='white'),
+                IconButton(icon='Person', icon_color='white'),
+            ]
+        )
+        return mytab
     # Background
     top = Container(
         alignment=ft.alignment.center,
@@ -71,17 +85,44 @@ def main(page : Page):
         height=600,
         bgcolor='pink',
         content=Stack(
-            width=280,
-            height=580,
             controls=[
-                        Image(
-                            width=300,
-                            height=600,
-                            src='Images/Logo.png',
-                            fit='cover',
+                Column(
+                    width=280,
+                    height=580,
+                    controls=[
+                        # Search and Image Screen
+                        Container(
+                            alignment=ft.alignment.top_center,
+                            content=Stack(
+                                controls=[
+                                    Image(
+                                        width=300,
+                                        height=530,
+                                        src='Images/Logo.png',
+                                        fit='cover',
+                                    ),
+                                    _bar_search(),
+                                ]
+                            )
                         ),
-                        _bar_search(),
-                      ],
+                        # Menu Tabs
+                        Container(
+                            alignment=ft.alignment.bottom_center,
+                           
+                            width=300,
+                            height=50,
+                            content=Stack(
+                                controls=[
+                                    _TapMenu(),
+                                ]
+                            ),
+                            padding=1,
+                            bgcolor='pink',
+
+                        ),
+                    ]
+                )
+            ],
         ),
 
         border_radius=35,
