@@ -1,8 +1,8 @@
 import flet as ft
 from flet import*
 fake_music = [
-    'Noi Nay Co Anh',
-    'Thang Dien',
+    'Nơi Này Có Anh',
+    'Thằng Điên',
     'Lan Man',
     'Die With A Smile',
     'Thich Thich',
@@ -35,11 +35,13 @@ def main(page : Page):
                 matching_music = [music for music in fake_music if search_music in music.lower()]
                 match_music = '\n'.join(matching_music)
                 result_search.content.controls[1].controls.append(
-                    ListTile(
-                        title=Text(match_music, size=17, weight='bold'),
-                        on_click=lambda e : print(match_music)
-                           
-                    )
+                   
+                        ListTile(
+                            title=Text(match_music, size=17, weight='bold'),
+                            on_click=lambda e : print(match_music)
+                            
+                        ) 
+                    
                 )
             else:
                 result_search.visible = False
@@ -68,13 +70,18 @@ def main(page : Page):
         width=300,
         height=600,
         bgcolor='pink',
-    
         content=Stack(
             width=280,
             height=580,
-            controls=[_bar_search()],
-            alignment=ft.alignment.top_center,
-            
+            controls=[
+                        Image(
+                            width=300,
+                            height=600,
+                            src='Images/Logo.png',
+                            fit='cover',
+                        ),
+                        _bar_search(),
+                      ],
         ),
 
         border_radius=35,
