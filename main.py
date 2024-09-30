@@ -17,6 +17,7 @@ def main(page : Page):
     def click_search(e):
         home_screen.content.controls[1].focus()
         page.update()
+        
     home_screen = Container(
         width=350,
         height=650,
@@ -54,7 +55,7 @@ def main(page : Page):
                     autofocus=False,
                 ),
             
-                # Result search name music
+                # No Content - Result search name music
                 ft.Column(
                     width=400,
                     height=480,
@@ -75,13 +76,44 @@ def main(page : Page):
                                    ),
 
                         IconButton(icon=ft.icons.FAVORITE, icon_color=ft.colors.WHITE,
-                                   icon_size=30),
+                                   icon_size=30, on_click=lambda _: page.go('/playscreen')),
                     ]
                 )
             ]
         )
     )
 
+    create_task_view = Container(
+        
+        content=[
+            IconButton(icon=ft.icons.ARROW_BACK, on_click=lambda _: page.go('/'))
+        ]
+        )
+    
+    
+    pages = {
+        '/':View(
+                "/",
+                [
+                    home_screen
+                ],
+            ),
+        '/playscreen': View(
+                    "/playscreen",
+                    [
+                        create_task_view
+                    ],
+                )
+            
+    }
+    
+    def route_change(route):
+        page.views.clear()
+        page.views.append(
+        pages[page.route]
+    )
+
+    page.on_route_change = route_change
     page.add(home_screen
              )
 
