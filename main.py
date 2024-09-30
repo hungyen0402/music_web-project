@@ -20,7 +20,7 @@ def main(page : Page):
     home_screen = Container(
         width=350,
         height=650,
-        border_radius=35,
+        border_radius=25,
         bgcolor=bgcolor,
         content=Column(
             controls=[
