@@ -95,13 +95,14 @@ def main(page : Page):
                             alignment=ft.alignment.top_center,
                             content=Stack(
                                 controls=[
-                                    Image(
-                                        width=300,
-                                        height=530,
-                                        src='Images/Logo.png',
-                                        fit='cover',
-                                    ),
                                     _bar_search(),
+                                    # Image(
+                                    #     width=300,
+                                    #     height=530,
+                                    #     src='Images/Logo.png',
+                                    #     fit='cover',
+                                    # ),
+                    
                                 ]
                             )
                         ),
