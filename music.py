@@ -1,5 +1,6 @@
 import flet as ft
 from flet import *
+import time
 
 def main(page: Page):
     page.title = 'Music Player 1.0.1'
@@ -19,7 +20,11 @@ def main(page: Page):
         src=playlist[current_song_index], 
         volume=1, 
         autoplay=False,
-        on_loaded=lambda _: update_total_time()
+        on_loaded=lambda _: 
+            update_total_time(),
+        on_position_changed=lambda _:
+            update_current_time()
+        
     )
 
     def play(e):
@@ -64,6 +69,14 @@ def main(page: Page):
         total_time = audio.get_duration()/1000
         total_time_text.value = f"{int(total_time)//60}:{int(total_time % 60):02d}"
         total_time_text.update()
+
+    def update_current_time():
+        current_time = audio.get_current_position() / 1000
+        current_time_text.value = f"{int(current_time) // 60}:{int(current_time % 60):02d}"
+        current_time_text.update()
+        if current_time > audio.get_duration()/1000-1:
+            audio.pause(),
+            next_song(None)
 
     def back(e):
         audio.pause()
