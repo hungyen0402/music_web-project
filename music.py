@@ -28,7 +28,7 @@ def main(page: Page):
     )
 
     def play(e):
-        audio.play()
+        audio.resume()
         play_button.visible = False
         pause_button.visible = True
         play_button.update()
