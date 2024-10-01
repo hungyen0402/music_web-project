@@ -1,11 +1,16 @@
 import flet as ft
 from flet import*
+from unidecode import unidecode
+
 fake_music = [
     'Nơi Này Có Anh',
     'Thằng Điên',
     'Lan Man',
     'Die With A Smile',
     'Thich Thich',
+    'Nơi này có em',
+    'Thang kho',
+    'Tram nam khong quen'
 ]
 
 def main(page : Page):
@@ -15,6 +20,7 @@ def main(page : Page):
     page.vertical_alignment = 'center'
     page.window.width = 350
 
+
     # Search Bar  
     def _bar_search():
 
@@ -22,22 +28,22 @@ def main(page : Page):
         result_search = Container(
             visible=False,
             content=Column(
-                [ Text('Result Music', weight='bold'),
+                [ Text('Result Music', weight='bold', color = 'black'),
                 Column()]
-            )
+            ) # sửa chữ thành màu đen 
         )
         # Search Music Name
         def change_music(e):
             if e.data:
                 result_search.content.controls[1].controls.clear()
                 result_search.visible = True
-                search_music = e.data.lower()
-                matching_music = [music for music in fake_music if search_music in music.lower()]
+                search_music = unidecode(e.data.lower())
+                matching_music = [music for music in fake_music if search_music in unidecode(music.lower())]
                 match_music = '\n'.join(matching_music)
                 result_search.content.controls[1].controls.append(
                    
                         ListTile(
-                            title=Text(match_music, size=17, weight='bold'),
+                            title=Text(match_music, size=17, style = 'italic', color = 'black'),
                             on_click=lambda e : print(match_music)
                             
                         ) 
@@ -50,8 +56,8 @@ def main(page : Page):
         # Search Bar
         bar_search = SearchBar(
             view_elevation=5,
-            bar_bgcolor='lightblue100',
-            bar_overlay_color='white',
+            bar_bgcolor='lightblue100',# màu nền 
+            bar_overlay_color='black', # màu phủ 
             bar_hint_text='Search',
             view_hint_text='Search anything',
             bar_leading=ft.IconButton(icon='search'),
@@ -131,4 +137,4 @@ def main(page : Page):
     page.add(top)
 
 
-ft.app(target=main)
+ft.app(target=main, view=AppView.WEB_BROWSER, port=2905)
