@@ -1,6 +1,7 @@
 from flet import *
 import flet as ft
-
+import time
+import threading
 
 def main(page : Page):
     bgcolor = "#710B46"
@@ -14,32 +15,46 @@ def main(page : Page):
     page.horizontal_alignment = 'center'
     page.theme_mode = 'dark'
 
+    def change_music_screen(e):
+        
+            main_container.visible = True
+            home_screen.visible = False
+            page.update()
+    
+    def change_home_screen(e):
+        
+            main_container.visible = False
+            home_screen.visible = True
+            page.update()
+   
+        
+
+    # Music Screen
     playlist = [
         "audio/NoiNayCoAnh-SonTungMTP.mp3",
         "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
         "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-]
+    ]
     current_song_index = 0
 
     audio = ft.Audio(
         src=playlist[current_song_index], 
         volume=1, 
         autoplay=False,
-        on_loaded=lambda _: 
-            update_total_time(),
-        on_position_changed=lambda _:
-            update_current_time()
-        
+        on_loaded=lambda _: update_total_time(),
+        on_position_changed=lambda _: update_current_time()
     )
 
     def play(e):
         audio.resume()
-        home_screen.content.controls[2].height = 370
-        home_screen.content.controls[3].visible = True
         play_button.visible = False
         pause_button.visible = True
         play_button.update()
         pause_button.update()
+        threading.Thread(target=update_slider).start()
+        home_screen.content.controls[3].visible = True
+        home_screen.content.controls[2].height = 370
+        page.update()
 
     def pause(e):
         audio.pause()
@@ -73,20 +88,32 @@ def main(page : Page):
         update_total_time()
 
     def update_total_time():
-        total_time = audio.get_duration()/1000
-        total_time_text.value = f"{int(total_time)//60}:{int(total_time % 60):02d}"
+        total_time = audio.get_duration() / 1000
+        total_time_text.value = f"{int(total_time) // 60}:{int(total_time % 60):02d}"
         total_time_text.update()
+        slider.max = total_time
+        slider.update()
 
     def update_current_time():
         current_time = audio.get_current_position() / 1000
         current_time_text.value = f"{int(current_time) // 60}:{int(current_time % 60):02d}"
         current_time_text.update()
-        if current_time > audio.get_duration()/1000-1:
-            audio.pause(),
+        slider.value = current_time
+        slider.update()
+        if current_time >= audio.get_duration() / 1000 - 1:
+            audio.pause()
             next_song(None)
+
+    def update_slider():
+        while audio.get_current_position() < audio.get_duration():
+            current_time = audio.get_current_position() / 1000
+            slider.value = current_time
+            slider.update()
+            time.sleep(0.1)
 
     def back(e):
         audio.pause()
+
 
     play_button = ft.IconButton(icon=ft.icons.PLAY_ARROW, on_click=play, visible=True, icon_color="black")
     pause_button = ft.IconButton(icon=ft.icons.PAUSE, on_click=pause, visible=False, icon_color="black")
@@ -97,31 +124,19 @@ def main(page : Page):
     current_time_text = ft.Text("00:00", color="black")
     total_time_text = ft.Text("00:00", color="black")
 
-    def change_music_screen(e):
-        
-            main_container.visible = True
-            home_screen.visible = False
-            page.update()
-    
-    def change_home_screen(e):
-        
-            main_container.visible = False
-            home_screen.visible = True
-            page.update()
-
-
     main_container = ft.Container(
         alignment=ft.alignment.center,
         width=320,
         height=600,
         bgcolor=bgcolor,
+        visible=False,
         content=ft.Column(
             [
                 audio,
                 ft.Row(
                     controls=[
-                        ft.IconButton(icon=ft.icons.ARROW_BACK,
-                                        on_click=change_home_screen)
+                        IconButton(icon=ft.icons.ARROW_BACK, icon_color=ft.colors.WHITE,
+                                   icon_size=30, on_click=change_home_screen)
                     ],
                     alignment=ft.MainAxisAlignment.START,
                 ),
@@ -180,7 +195,7 @@ def main(page : Page):
                                 ft.Text("                                               "),
                                 total_time_text,
                             ],
-                            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
                         ),
                         slider,
                         ft.Row(
@@ -209,11 +224,8 @@ def main(page : Page):
         border_radius=25,
     )
 
-    
-        
 
-
-
+    # Home_Screen
 
     def click_search(e):
         home_screen.content.controls[1].focus()
@@ -266,6 +278,7 @@ def main(page : Page):
                     controls=[]
                 ),
                 
+                # Mini Music Screen
                 ft.Container(
                     width=320,
                     height=50,
@@ -299,6 +312,8 @@ def main(page : Page):
                                    icon_size=30,
                                    on_click=click_search
                                    ),
+                        IconButton(icon=ft.icons.FAVORITE, icon_color=ft.colors.WHITE,
+                                   icon_size=30),
 
                         ft.IconButton(icon=ft.icons.PERSON, icon_color=ft.colors.WHITE
                                       , on_click=change_music_screen),
