@@ -4,7 +4,11 @@ import time
 import threading
 
 def main(page : Page):
-    bgcolor = "#710B46"
+    bgcolor = LinearGradient(
+        begin=ft.alignment.bottom_left,
+        end= ft.alignment.top_right,
+        colors=['#f46464', '#3d2f5e']
+    )
     primary = "#41005E"
     secondary = "#F1DEFA"
     tertiary = "#B19FF9"
@@ -119,7 +123,7 @@ def main(page : Page):
     pause_button = ft.IconButton(icon=ft.icons.PAUSE, on_click=pause, visible=False, icon_color="black")
     next_button = ft.IconButton(icon=ft.icons.SKIP_NEXT, on_click=next_song, icon_color="black")
     prev_button = ft.IconButton(icon=ft.icons.SKIP_PREVIOUS, on_click=prev_song, icon_color="black")
-    back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=back, icon_color="black")
+    # back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=back, icon_color="black")
     slider = ft.Slider(min=0, thumb_color="transparent", on_change_end=None)
     current_time_text = ft.Text("00:00", color="black")
     total_time_text = ft.Text("00:00", color="black")
@@ -128,7 +132,7 @@ def main(page : Page):
         alignment=ft.alignment.center,
         width=320,
         height=600,
-        bgcolor=bgcolor,
+        gradient=bgcolor,
         visible=False,
         content=ft.Column(
             [
@@ -235,7 +239,7 @@ def main(page : Page):
         width=320,
         height=600,
         border_radius=25,
-        bgcolor=bgcolor,
+        gradient=bgcolor,
         visible=True,
         content=Column(
             controls=[
@@ -283,7 +287,7 @@ def main(page : Page):
                     width=320,
                     height=50,
                     visible=False,
-                    bgcolor='white',
+                    gradient=bgcolor,
                     border_radius=25,
                     content=Row(
                         controls=[
