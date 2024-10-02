@@ -336,4 +336,4 @@ def main(page : Page):
     
 
 
-ft.app(target=main)
+ft.app(target=main, assets_dir='assets',view=ft.AppView.WEB_BROWSER, web_renderer=WebRenderer.HTML)
