@@ -2,6 +2,9 @@ from flet import *
 import flet as ft
 import time
 import threading
+from ytmusicapi import YTMusic
+from pytube import YouTube
+import os
 
 def main(page : Page):
     bgcolor = LinearGradient(
@@ -41,16 +44,16 @@ def main(page : Page):
     ]
     current_song_index = 0
 
-    audio = ft.Audio(
-        src=playlist[current_song_index], 
+    audio1 = ft.Audio(
+        src='https://music.youtube.com/watch?v=qHpE45b4INk', 
         volume=1, 
-        autoplay=False,
-        on_loaded=lambda _: update_total_time(),
-        on_position_changed=lambda _: update_current_time()
+        autoplay=True,
+        # on_loaded=lambda _: update_total_time(),
+        # on_position_changed=lambda _: update_current_time()
     )
 
     def play(e):
-        audio.resume()
+        audio1.resume()
         play_button.visible = False
         pause_button.visible = True
         play_button.update()
@@ -61,7 +64,7 @@ def main(page : Page):
         page.update()
 
     def pause(e):
-        audio.pause()
+        audio1.pause()
         play_button.visible = True
         pause_button.visible = False
         play_button.update()
@@ -70,11 +73,11 @@ def main(page : Page):
     def next_song(e):
         nonlocal current_song_index
         current_song_index = (current_song_index + 1) % len(playlist)
-        audio.src = playlist[current_song_index]
+        audio1.src = playlist[current_song_index]
         play_button.visible = False
         pause_button.visible = True
-        audio.autoplay = True
-        audio.update()
+        audio1.autoplay = True
+        audio1.update()
         play_button.update()
         pause_button.update()
         update_total_time()
@@ -82,48 +85,48 @@ def main(page : Page):
     def prev_song(e):
         nonlocal current_song_index
         current_song_index = (current_song_index - 1) % len(playlist)
-        audio.src = playlist[current_song_index]
+        audio1.src = playlist[current_song_index]
         play_button.visible = False
         pause_button.visible = True
-        audio.autoplay = True
-        audio.update()
+        audio1.autoplay = True
+        audio1.update()
         play_button.update()
         pause_button.update()
         update_total_time()
 
     def update_total_time():
-        total_time = audio.get_duration() / 1000
+        total_time = audio1.get_duration() / 1000
         total_time_text.value = f"{int(total_time) // 60}:{int(total_time % 60):02d}"
         total_time_text.update()
         slider.max = total_time
         slider.update()
 
     def update_current_time():
-        current_time = audio.get_current_position() / 1000
+        current_time = audio1.get_current_position() / 1000
         current_time_text.value = f"{int(current_time) // 60}:{int(current_time % 60):02d}"
         current_time_text.update()
         slider.value = current_time
         slider.update()
-        if current_time >= audio.get_duration() / 1000 - 1:
-            audio.pause()
+        if current_time >= audio1.get_duration() / 1000 - 1:
+            audio1.pause()
             next_song(None)
 
     def update_slider():
-        while audio.get_current_position() < audio.get_duration():
-            current_time = audio.get_current_position() / 1000
+        while audio1.get_current_position() < audio1.get_duration():
+            current_time = audio1.get_current_position() / 1000
             slider.value = current_time
             slider.update()
             time.sleep(0.1)
 
     def back(e):
-        audio.pause()
+        audio1.pause()
 
 
     play_button = ft.IconButton(icon=ft.icons.PLAY_ARROW, on_click=play, visible=True, icon_color="black")
     pause_button = ft.IconButton(icon=ft.icons.PAUSE, on_click=pause, visible=False, icon_color="black")
     next_button = ft.IconButton(icon=ft.icons.SKIP_NEXT, on_click=next_song, icon_color="black")
     prev_button = ft.IconButton(icon=ft.icons.SKIP_PREVIOUS, on_click=prev_song, icon_color="black")
-    # back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=back, icon_color="black")
+    back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=back, icon_color="black")
     slider = ft.Slider(min=0, thumb_color="transparent", on_change_end=None)
     current_time_text = ft.Text("00:00", color="black")
     total_time_text = ft.Text("00:00", color="black")
@@ -136,7 +139,7 @@ def main(page : Page):
         visible=False,
         content=ft.Column(
             [
-                audio,
+                audio1,
                 ft.Row(
                     controls=[
                         IconButton(icon=ft.icons.ARROW_BACK, icon_color=ft.colors.WHITE,
@@ -234,7 +237,56 @@ def main(page : Page):
     def click_search(e):
         home_screen.content.controls[1].focus()
         page.update()
-        
+    
+    # Return music, download music and play
+    def playmusic(e):
+        videoId = e.control.subtitle.value
+        videoUrl = 'https://music.youtube.com/watch?v=' + str(videoId)
+    
+        yt = YouTube(videoUrl)
+		#  DOWNLOAD THE VIDEO 
+        video_stream = yt.streams.filter(only_audio=True).first()
+        result = video_stream.download(output_path='assets/audio/')
+        if not result == '':
+            print('DOWNLOAD FINISHED')
+           
+            print(result)
+            audio1.src = result
+           
+
+            audio1.play()
+            audio1.autoplay = True
+            page.update()
+        page.update()
+
+    # Search
+    def search_song(e):
+        result = YTMusic().search(query=e.data, filter='songs')
+        home_screen.content.controls[2].controls.clear()
+        if not result == '':
+            for x in result:
+                home_screen.content.controls[2].controls.append(
+				ListTile(
+                    leading=Image(
+                        src=x['thumbnails'][1]['url'],
+                        fit="cover",
+                        width=70,
+                        height=70,
+                        border_radius=10
+                    ),
+                    title=Column([
+                        Text(x['title'],weight="bold"),
+                        Text(x['artists'][0]['name'], weight='bold')
+                        ]),
+                    subtitle=Text(x['videoId'],size=10),
+    
+                    # AND IF CLICK THIS LISTTILE THEN RUN FUNCTION
+                    on_click=lambda e:playmusic(e)
+				)
+			)
+            
+            page.update()
+                
     home_screen = Container(
         width=320,
         height=600,
@@ -271,6 +323,7 @@ def main(page : Page):
                     focused_color=secondary,
                     focused_border_color=secondary,
                     autofocus=False,
+                    on_submit=lambda e : search_song(e)
                 ),
                
             
@@ -329,7 +382,7 @@ def main(page : Page):
 
 
     
-    
+    page.overlay.append(audio1)
     page.add(home_screen,
              main_container
              )

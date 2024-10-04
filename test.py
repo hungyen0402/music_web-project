@@ -233,7 +233,13 @@ def main(page : Page):
 
 
     # Home_Screen
+    def mini_screen(e):
+        home_screen.content.controls[3].content.controls[1].src =str(e.control.title.controls[1].value)
+           
+        home_screen.content.controls[3].visible = True
 
+        home_screen.content.controls[2].height = 370
+   
     def click_search(e):
         home_screen.content.controls[1].focus()
         page.update()
@@ -246,14 +252,17 @@ def main(page : Page):
         yt = YouTube(videoUrl)
 		#  DOWNLOAD THE VIDEO 
         video_stream = yt.streams.filter(only_audio=True).first()
-        result = video_stream.download(output_path='assets/audio/')
+        result = video_stream.download(output_path='assets/audio/', filename=str(e.control.title.controls[0].value).lower() + '.mp4')
+    
         if not result == '':
             print('DOWNLOAD FINISHED')
-           
-            print(result)
-            audio1.src = result
-           
+            # Mini screen
+            mini_screen(e)
+            
+            # Play music
 
+            audio1.src = 'audio/' + str(e.control.title.controls[0].value).lower() + '.mp4'
+           
             audio1.play()
             audio1.autoplay = True
             page.update()
@@ -271,14 +280,15 @@ def main(page : Page):
                         src=x['thumbnails'][1]['url'],
                         fit="cover",
                         width=70,
-                        height=70,
+                        height=90,
                         border_radius=10
                     ),
                     title=Column([
-                        Text(x['title'],weight="bold"),
+                        Text(x['title'],size=17,weight="bold"),
+                        Text(x['thumbnails'][1]['url'], visible=False),
                         Text(x['artists'][0]['name'], weight='bold')
                         ]),
-                    subtitle=Text(x['videoId'],size=10),
+                    subtitle=Text(x['videoId'],size=10, visible=False),
     
                     # AND IF CLICK THIS LISTTILE THEN RUN FUNCTION
                     on_click=lambda e:playmusic(e)
@@ -348,7 +358,7 @@ def main(page : Page):
                                width=5  
                             ) ,
 
-                            ft.Image(src='Images/image1.jpg',
+                            ft.Image(src='',
                                     width=50,
                                     height=50,
                                     border_radius=25,
@@ -389,4 +399,4 @@ def main(page : Page):
     
 
 
-ft.app(target=main, assets_dir='assets', web_renderer=WebRenderer.HTML)
+ft.app(target=main, assets_dir='assets',web_renderer=WebRenderer.HTML)
