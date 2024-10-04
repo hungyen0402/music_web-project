@@ -1,140 +1,339 @@
+from flet import *
 import flet as ft
-from flet import*
-from unidecode import unidecode
-
-fake_music = [
-    'Nơi Này Có Anh',
-    'Thằng Điên',
-    'Lan Man',
-    'Die With A Smile',
-    'Thich Thich',
-    'Nơi này có em',
-    'Thang kho',
-    'Tram nam khong quen'
-]
+import time
+import threading
 
 def main(page : Page):
-    page.title = 'Music Player 1.0.1'
-    page.bgcolor = 'black'
+    bgcolor = LinearGradient(
+        begin=ft.alignment.bottom_left,
+        end= ft.alignment.top_right,
+        colors=['#f46464', '#3d2f5e']
+    )
+    primary = "#41005E"
+    secondary = "#F1DEFA"
+    tertiary = "#B19FF9"
+
+    page.title = 'Music Player'
+    page.window.width = 320
+    page.window.height = 650
     page.horizontal_alignment = 'center'
-    page.vertical_alignment = 'center'
-    page.window.width = 350
+    page.theme_mode = 'dark'
 
-
-    # Search Bar  
-    def _bar_search():
-
-        # Return result search
-        result_search = Container(
-            visible=False,
-            content=Column(
-                [ Text('Result Music', weight='bold', color = 'black'),
-                Column()]
-            ) # sửa chữ thành màu đen 
-        )
-        # Search Music Name
-        def change_music(e):
-            if e.data:
-                result_search.content.controls[1].controls.clear()
-                result_search.visible = True
-                search_music = unidecode(e.data.lower())
-                matching_music = [music for music in fake_music if search_music in unidecode(music.lower())]
-                match_music = '\n'.join(matching_music)
-                result_search.content.controls[1].controls.append(
-                   
-                        ListTile(
-                            title=Text(match_music, size=17, style = 'italic', color = 'black'),
-                            on_click=lambda e : print(match_music)
-                            
-                        ) 
-                    
-                )
-            else:
-                result_search.visible = False
+    def change_music_screen(e):
+        
+            main_container.visible = True
+            home_screen.visible = False
             page.update()
+    
+    def change_home_screen(e):
+        
+            main_container.visible = False
+            home_screen.visible = True
+            page.update()
+   
+        
 
-        # Search Bar
-        bar_search = SearchBar(
-            view_elevation=5,
-            bar_bgcolor='lightblue100',# màu nền 
-            bar_overlay_color='black', # màu phủ 
-            bar_hint_text='Search',
-            view_hint_text='Search anything',
-            bar_leading=ft.IconButton(icon='search'),
-            on_change=change_music,
-            full_screen= True
-        )
-        return Column([
-            bar_search,
-            result_search,
-        ])
-    # Menu Tabs
-    def _TapMenu():
-       
-        mytab = Row(
-            alignment='spaceBetween',
-            controls=[
-                IconButton(icon='Menu', 
-                           icon_color='white',
-                           on_click=lambda e : print('Menu')
-                           ),
-                IconButton(icon='Home', icon_color='white'),
-                IconButton(icon='Favorite', icon_color='white'),
-                IconButton(icon='Person', icon_color='white'),
-            ]
-        )
-        return mytab
-    # Background
-    top = Container(
+    # Music Screen
+    playlist = [
+        "audio/Nơi Này Có Anh.mp4",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+    ]
+    current_song_index = 0
+
+    audio = ft.Audio(
+        src=playlist[current_song_index], 
+        volume=1, 
+        autoplay=False,
+        on_loaded=lambda _: update_total_time(),
+        on_position_changed=lambda _: update_current_time()
+    )
+
+    def play(e):
+        audio.resume()
+        play_button.visible = False
+        pause_button.visible = True
+        play_button.update()
+        pause_button.update()
+        threading.Thread(target=update_slider).start()
+        home_screen.content.controls[3].visible = True
+        home_screen.content.controls[2].height = 370
+        page.update()
+
+    def pause(e):
+        audio.pause()
+        play_button.visible = True
+        pause_button.visible = False
+        play_button.update()
+        pause_button.update()
+
+    def next_song(e):
+        nonlocal current_song_index
+        current_song_index = (current_song_index + 1) % len(playlist)
+        audio.src = playlist[current_song_index]
+        play_button.visible = False
+        pause_button.visible = True
+        audio.autoplay = True
+        audio.update()
+        play_button.update()
+        pause_button.update()
+        update_total_time()
+
+    def prev_song(e):
+        nonlocal current_song_index
+        current_song_index = (current_song_index - 1) % len(playlist)
+        audio.src = playlist[current_song_index]
+        play_button.visible = False
+        pause_button.visible = True
+        audio.autoplay = True
+        audio.update()
+        play_button.update()
+        pause_button.update()
+        update_total_time()
+
+    def update_total_time():
+        total_time = audio.get_duration() / 1000
+        total_time_text.value = f"{int(total_time) // 60}:{int(total_time % 60):02d}"
+        total_time_text.update()
+        slider.max = total_time
+        slider.update()
+
+    def update_current_time():
+        current_time = audio.get_current_position() / 1000
+        current_time_text.value = f"{int(current_time) // 60}:{int(current_time % 60):02d}"
+        current_time_text.update()
+        slider.value = current_time
+        slider.update()
+        if current_time >= audio.get_duration() / 1000 - 1:
+            audio.pause()
+            next_song(None)
+
+    def update_slider():
+        while audio.get_current_position() < audio.get_duration():
+            current_time = audio.get_current_position() / 1000
+            slider.value = current_time
+            slider.update()
+            time.sleep(0.1)
+
+    def back(e):
+        audio.pause()
+
+
+    play_button = ft.IconButton(icon=ft.icons.PLAY_ARROW, on_click=play, visible=True, icon_color="black")
+    pause_button = ft.IconButton(icon=ft.icons.PAUSE, on_click=pause, visible=False, icon_color="black")
+    next_button = ft.IconButton(icon=ft.icons.SKIP_NEXT, on_click=next_song, icon_color="black")
+    prev_button = ft.IconButton(icon=ft.icons.SKIP_PREVIOUS, on_click=prev_song, icon_color="black")
+    # back_button = ft.IconButton(icon=ft.icons.ARROW_BACK, on_click=back, icon_color="black")
+    slider = ft.Slider(min=0, thumb_color="transparent", on_change_end=None)
+    current_time_text = ft.Text("00:00", color="black")
+    total_time_text = ft.Text("00:00", color="black")
+
+    main_container = ft.Container(
         alignment=ft.alignment.center,
-        width=300,
+        width=320,
         height=600,
-        bgcolor='pink',
-        content=Stack(
-            controls=[
-                Column(
-                    width=280,
-                    height=580,
+        gradient=bgcolor,
+        visible=False,
+        content=ft.Column(
+            [
+                audio,
+                ft.Row(
                     controls=[
-                        # Search and Image Screen
-                        Container(
-                            alignment=ft.alignment.top_center,
-                            content=Stack(
-                                controls=[
-                                    _bar_search(),
-                                    # Image(
-                                    #     width=300,
-                                    #     height=530,
-                                    #     src='Images/Logo.png',
-                                    #     fit='cover',
-                                    # ),
-                    
-                                ]
-                            )
-                        ),
-                        # Menu Tabs
-                        Container(
-                            alignment=ft.alignment.bottom_center,
-                           
-                            width=300,
-                            height=50,
-                            content=Stack(
-                                controls=[
-                                    _TapMenu(),
-                                ]
+                        IconButton(icon=ft.icons.ARROW_BACK, icon_color=ft.colors.WHITE,
+                                   icon_size=30, on_click=change_home_screen)
+                    ],
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                ft.Row(
+                    controls=[
+                        ft.Container(
+                            width=270,
+                            height=270,
+                            shadow=ft.BoxShadow(
+                                spread_radius=6,
+                                blur_radius=10,
+                                color=ft.colors.with_opacity(0.35,"black"),
                             ),
-                            padding=1,
-                            bgcolor='pink',
-
+                            image_fit="cover",
+                            content=ft.Stack(
+                                controls=[
+                                    ft.Image(
+                                        src='Images/image1.jpg',
+                                        fit=ft.ImageFit.CONTAIN,
+                                        border_radius=ft.border_radius.all(10)
+                                    ),
+                                ],
+                            ),
                         ),
-                    ]
-                )
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                ft.Divider(
+                    height=10,
+                    color="transparent"
+                ),
+                ft.Column(
+                    [
+                        ft.Row(
+                            controls=[
+                                ft.Text("  "+"Nơi Này Có Anh",size=18,weight=ft.FontWeight.BOLD,color="black"),
+                            ],
+                        ),
+                        ft.Row(
+                            controls=[
+                                ft.Text("   "+"Sơn Tùng MTP",size=15,opacity=0.81,color="grey"),
+                            ],
+                        ),
+                    ],
+                    spacing=1,
+                ),
+                ft.Divider(
+                    height=10,
+                    color="transparent"
+                ),
+                ft.Column(
+                    [
+                        ft.Row(
+                            controls=[
+                                current_time_text,
+                                ft.Text("                                               "),
+                                total_time_text,
+                            ],
+                             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                        ),
+                        slider,
+                        ft.Row(
+                            [
+                                prev_button,
+                                play_button,
+                                pause_button,
+                                next_button
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                        ),
+                    ],
+                    spacing=0,
+                ),
+                ft.Divider(
+                    height=10,
+                    color="transparent"
+                ),
+                
+                ft.Container(
+                    width=60,
+                    height=60,
+                ),
             ],
         ),
-
-        border_radius=35,
+        border_radius=25,
     )
-    page.add(top)
 
 
-ft.app(target=main, view=AppView.WEB_BROWSER, port=2905)
+    # Home_Screen
+
+    def click_search(e):
+        home_screen.content.controls[1].focus()
+        page.update()
+        
+    home_screen = Container(
+        width=320,
+        height=600,
+        border_radius=25,
+        gradient=bgcolor,
+        visible=True,
+        content=Column(
+            controls=[
+                # First Row in Page - Title and Search Icon 
+                Row(alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                    controls=[
+                        Container(
+                            width=50
+                        ),
+                        Text(value='Music Player', 
+                             color=ft.colors.WHITE,
+                             weight='bold',
+                             italic=True, size=30,
+                        ),
+
+                        Container(
+                            width=50
+                        ),
+                    ]
+                ),
+                # Second Row in Page - Search Box
+                ft.TextField(
+                    filled= True,
+                    prefix_icon=ft.icons.SEARCH,
+                    hint_text='Search',
+                    width=400,
+                    border_width=2,
+                    border_radius=20,
+                    focused_color=secondary,
+                    focused_border_color=secondary,
+                    autofocus=False,
+                ),
+               
+            
+                # No Content - Result search name music
+                ft.Column(
+                    width=320,
+                    height=420,
+                    scroll=ScrollMode.AUTO,
+                    controls=[]
+                ),
+                
+                # Mini Music Screen
+                ft.Container(
+                    width=320,
+                    height=50,
+                    visible=False,
+                    gradient=bgcolor,
+                    border_radius=25,
+                    content=Row(
+                        controls=[
+                            Container(
+                               width=5  
+                            ) ,
+
+                            ft.Image(src='Images/image1.jpg',
+                                    width=50,
+                                    height=50,
+                                    border_radius=25,
+                                    
+                            ),
+                            
+                        ]
+                    )
+                ),
+                # Menu Row
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                    controls=[
+                        IconButton(icon=ft.icons.HOME, icon_color=ft.colors.WHITE,
+                                   icon_size=30),
+
+                        IconButton(icon=ft.icons.SEARCH, icon_color=ft.colors.WHITE,
+                                   icon_size=30,
+                                   on_click=click_search
+                                   ),
+                        IconButton(icon=ft.icons.FAVORITE, icon_color=ft.colors.WHITE,
+                                   icon_size=30),
+
+                        ft.IconButton(icon=ft.icons.PERSON, icon_color=ft.colors.WHITE
+                                      , on_click=change_music_screen),
+                    ]
+                )
+            ]
+        )
+    )
+
+
+    
+    
+    page.add(home_screen,
+             main_container
+             )
+    
+
+
+ft.app(target=main, assets_dir='assets', web_renderer=WebRenderer.HTML)
